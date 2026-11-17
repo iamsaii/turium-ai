@@ -2,8 +2,6 @@ node_modules/
 dist/
 data.db*
 .env
-.superpowers/
-.gemini/
 docs/
 coverage/
 .DS_Store
