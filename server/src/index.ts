@@ -1,6 +1,6 @@
-import { createApp } from './app.js';
+import { PORT, DATABASE_PATH } from './config.js';
 import { getDatabase, closeDatabase } from './lib/db.js';
-import { PORT } from './config.js';
+import { createApp } from './app.js';
 import { logger } from './lib/logger.js';
 
 const db = getDatabase();

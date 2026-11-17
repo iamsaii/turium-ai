@@ -68,11 +68,11 @@ export function getDatabase(customPath?: string): DatabaseSync {
     return dbInstance;
   }
 
-  const targetPath = customPath || DATABASE_PATH;
+  const targetPath = customPath || DATABASE_PATH || process.env.DATABASE_PATH || 'data.db';
 
-  if (targetPath !== ':memory:') {
+  if (targetPath && targetPath !== ':memory:') {
     const dir = path.dirname(targetPath);
-    if (!fs.existsSync(dir)) {
+    if (dir && dir !== '.' && !fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
   }

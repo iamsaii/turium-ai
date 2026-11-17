@@ -6,12 +6,19 @@ async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     let message = `Request failed with status ${res.status}`;
     try {
-      const data = await res.json();
-      if (data && data.error) {
-        message = data.error;
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        if (data && data.error) {
+          message = data.error;
+        }
+      } catch {
+        if (text && text.trim().length > 0 && text.length < 300) {
+          message = text.trim();
+        }
       }
     } catch {
-      // Body not JSON
+      // Body reading failed
     }
     throw new Error(message);
   }

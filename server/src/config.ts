@@ -1,5 +1,10 @@
 import dotenv from 'dotenv';
+import path from 'node:path';
+
+// Load .env from workspace and repository root
 dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 export const PORT = parseInt(process.env.PORT || '3000', 10);
 export const DATABASE_PATH = process.env.DATABASE_PATH || 'data.db';
