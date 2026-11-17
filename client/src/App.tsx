@@ -10,16 +10,20 @@ import type { Item, QueryResponseDTO } from './types.js';
 
 export const App: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isQuerying, setIsQuerying] = useState(false);
   const [queryResult, setQueryResult] = useState<QueryResponseDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refreshItems = useCallback(async () => {
+    setIsRefreshing(true);
     try {
       const fetched = await fetchItems();
       setItems(fetched);
     } catch (err: any) {
       setError(err?.message || 'Failed to fetch items from server.');
+    } finally {
+      setIsRefreshing(false);
     }
   }, []);
 
@@ -52,20 +56,25 @@ export const App: React.FC = () => {
   const readyItemsCount = items.filter((item) => item.status === 'ready').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-      <Header totalItems={items.length} readyItems={readyItemsCount} />
+    <div className="min-h-screen bg-zinc-50 flex flex-col font-sans text-zinc-900 selection:bg-zinc-200">
+      <Header
+        totalItems={items.length}
+        readyItems={readyItemsCount}
+        onRefresh={refreshItems}
+        isRefreshing={isRefreshing}
+      />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
         {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Ingestion & Saved Items */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Collection */}
           <div className="lg:col-span-5 space-y-6">
             <IngestForm onIngested={refreshItems} />
             <ItemList items={items} onDelete={handleDelete} refreshItems={refreshItems} />
           </div>
 
-          {/* Right Column: Q&A Interface & Citations */}
+          {/* Right Column: Inquiry & Evidence */}
           <div className="lg:col-span-7 space-y-6">
             <QueryPanel onSubmitQuery={handleQuery} isLoading={isQuerying} />
             <AnswerDisplay
@@ -76,10 +85,6 @@ export const App: React.FC = () => {
           </div>
         </div>
       </main>
-
-      <footer className="border-t border-gray-200 bg-white py-4 text-center text-xs text-gray-400">
-        AI Knowledge Inbox &middot; Built with Node.js, Express, React, Tailwind &amp; Gemini 2.0
-      </footer>
     </div>
   );
 };

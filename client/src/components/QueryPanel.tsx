@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Send, Loader2, HelpCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface QueryPanelProps {
   onSubmitQuery: (question: string) => Promise<void>;
@@ -23,78 +23,52 @@ export const QueryPanel: React.FC<QueryPanelProps> = ({ onSubmitQuery, isLoading
     }
   };
 
-  const starterQuestions = [
-    'What are the key technical tradeoffs in the architecture?',
-    'Summarize all saved specifications.',
-    'What items were saved regarding frontend and API design?',
-  ];
-
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <div className="flex items-center space-x-2 border-b border-gray-100 pb-3 mb-4">
-        <Search className="w-4 h-4 text-indigo-600" />
-        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
-          Ask Your Knowledge Base
+    <div className="bg-white rounded-lg border border-zinc-200 p-4">
+      <div className="mb-2">
+        <h2 className="text-xs font-semibold text-zinc-900">
+          Query knowledge base
         </h2>
+        <p className="text-[11px] text-zinc-500">
+          Ask questions across your saved documents. Answers cite verified excerpts.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="relative">
+      <form onSubmit={handleSubmit} className="space-y-3 mt-3">
+        <div>
           <textarea
             rows={3}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask anything across your saved notes and URLs..."
-            className="w-full text-xs rounded-lg border border-gray-300 p-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+            placeholder="e.g. What were the key conclusions from the architecture review?"
+            className="w-full text-xs rounded border border-zinc-300 p-2.5 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 leading-relaxed resize-none"
             disabled={isLoading}
             required
           />
         </div>
 
         <div className="flex items-center justify-between">
-          <p className="text-[11px] text-gray-400 hidden sm:block">
-            Press <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-200 rounded text-gray-600 font-mono text-[10px]">Enter</kbd> to submit
-          </p>
+          <span className="text-[11px] text-zinc-400 font-mono">
+            Enter to submit &middot; Shift+Enter for newline
+          </span>
 
           <button
             type="submit"
             disabled={isLoading || !question.trim()}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-50 ml-auto"
+            className="inline-flex items-center px-3 py-1.5 rounded text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 transition-colors disabled:opacity-50"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                Thinking...
+                Searching...
               </>
             ) : (
-              <>
-                <Send className="w-3.5 h-3.5 mr-1.5" />
-                Ask Question
-              </>
+              'Query'
             )}
           </button>
         </div>
       </form>
-
-      <div className="mt-4 pt-3 border-t border-gray-100">
-        <div className="flex items-center space-x-1.5 text-xs text-gray-400 mb-2">
-          <HelpCircle className="w-3.5 h-3.5" />
-          <span>Suggested queries:</span>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {starterQuestions.map((q, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setQuestion(q)}
-              className="text-[11px] bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-900 px-2.5 py-1 rounded-md border border-gray-200 transition-colors text-left"
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
