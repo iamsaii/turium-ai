@@ -100,7 +100,7 @@ export async function generateAnswer(
   const formattedSources = contextSnippets
     .map(
       (s, idx) =>
-        `  <source id="${idx + 1}" title="${escapeXml(s.sourceTitle)}" item_id="${s.itemId}" chunk_id="${s.id}">\n    ${s.text}\n  </source>`
+        `  <source id="${idx + 1}" title="${escapeXml(s.title)}" item_id="${s.itemId}" chunk_id="${s.id}">\n    ${s.content}\n  </source>`
     )
     .join('\n');
 

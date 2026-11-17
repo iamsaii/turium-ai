@@ -69,12 +69,11 @@ describe('Gemini Service', () => {
 
       const snippets: SourceSnippet[] = [
         {
-          id: 'chunk-1',
-          itemId: 'item-1',
-          sourceTitle: 'Project Specs',
-          sourceType: 'text',
-          sourceUrl: undefined,
-          text: 'The project was officially launched in October 2024.',
+          id: 1,
+          itemId: 1,
+          title: 'Project Specs',
+          sourceUrl: null,
+          content: 'The project was officially launched in October 2024.',
           similarity: 0.88,
         },
       ];
