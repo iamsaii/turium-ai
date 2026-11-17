@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { GEMINI_API_KEY, EMBEDDING_MODEL, CHAT_MODEL } from '../config.js';
+import { GEMINI_API_KEY, EMBEDDING_MODEL, CHAT_MODEL, EMBEDDING_DIM } from '../config.js';
 import { RateLimitError, ExternalServiceError } from '../lib/errors.js';
 import type { SourceSnippet } from '../types/index.js';
 
@@ -7,7 +7,7 @@ let genAI: GoogleGenAI | null = null;
 
 function getClient(): GoogleGenAI {
   if (!genAI) {
-    genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY || 'dummy-key-for-test' });
+    genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   }
   return genAI;
 }
@@ -74,6 +74,9 @@ export async function generateEmbeddings(
     const result = await client.models.embedContent({
       model: EMBEDDING_MODEL,
       contents: texts,
+      config: {
+        outputDimensionality: EMBEDDING_DIM,
+      },
     });
 
     if (!result?.embeddings || !Array.isArray(result.embeddings)) {
