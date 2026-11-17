@@ -61,6 +61,12 @@ export const itemsRepo = {
     }));
   },
 
+  hasReadyItems(dbInstance?: DatabaseSync): boolean {
+    const db = dbInstance || getDatabase();
+    const row = db.prepare("SELECT 1 FROM items WHERE status = 'ready' LIMIT 1").get();
+    return !!row;
+  },
+
   updateItemReady(
     id: number,
     data: { title: string; rawContent: string; chunkCount: number },

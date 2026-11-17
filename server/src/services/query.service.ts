@@ -16,11 +16,7 @@ export async function executeQuery(
   dbInstance?: DatabaseSync
 ): Promise<QueryResponseDTO> {
   // Early check: Ensure knowledge base has ready items
-  const readyItems = itemsRepo
-    .getAllItemMetadata(dbInstance)
-    .filter((item) => item.status === 'ready');
-
-  if (readyItems.length === 0) {
+  if (!itemsRepo.hasReadyItems(dbInstance)) {
     return {
       answer: 'Your knowledge base is empty. Please add notes or URLs first before asking questions.',
       sources: [],

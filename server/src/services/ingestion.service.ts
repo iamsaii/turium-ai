@@ -5,6 +5,7 @@ import { extractUrlContent } from './extraction.service.js';
 import { chunkText } from './chunking.service.js';
 import { generateEmbeddings } from './gemini.service.js';
 import { serializeVector } from '../lib/vector.js';
+import { MAX_TEXT_SIZE_BYTES } from '../config.js';
 import { logger } from '../lib/logger.js';
 import type { IngestRequestDTO, Item } from '../types/index.js';
 
@@ -69,7 +70,7 @@ async function processIngestion(
       if (!dto.title) {
         finalTitle = extracted.title;
       }
-      bodyText = extracted.bodyText;
+      bodyText = extracted.bodyText.slice(0, MAX_TEXT_SIZE_BYTES);
     } else {
       bodyText = dto.content;
     }

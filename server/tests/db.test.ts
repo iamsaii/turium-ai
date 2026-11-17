@@ -3,6 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { initDatabase, getDatabase, closeDatabase } from '../src/lib/db.js';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 
 describe('Database Initialization & Schema', () => {
   let db: DatabaseSync;
@@ -71,7 +72,7 @@ describe('Database Initialization & Schema', () => {
 });
 
 describe('Database Singleton / File Init', () => {
-  const testDbDir = path.join(process.cwd(), '.tmp-test-db');
+  const testDbDir = path.join(os.tmpdir(), '.tmp-test-db-knowledge-inbox');
   const testDbPath = path.join(testDbDir, 'test.db');
 
   beforeEach(() => {
