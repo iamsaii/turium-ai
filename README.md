@@ -78,9 +78,9 @@ Open **[http://localhost:5173](http://localhost:5173)** in your browser.
             │                                             ▲
             ▼                                             │
  ┌────────────────────────────────────────────────────────┴────┐
- │                   Gemini 2.0 Flash / Embeddings             │
- │ - gemini-embedding-001 (Batch embeddings with MRL, 768-dim) │
- │ - gemini-2.5-flash (XML prompt injection defense RAG answer) │
+ │                   Gemini API / Embeddings                       │
+ │ - gemini-embedding-2 (Batch embeddings with MRL, 768-dim)   │
+ │ - gemini-3.8-flash (XML prompt injection defense RAG answer) │
  └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -97,7 +97,7 @@ Open **[http://localhost:5173](http://localhost:5173)** in your browser.
 ### 2. Embedded Vector Storage & Two-Stage Retrieval
 - **Rationale**: External vector databases (Pinecone, Qdrant, Milvus) introduce network hops, recurring costs, and synchronization overhead for a single-user knowledge inbox of hundreds or thousands of documents.
 - **Two-Stage SQLite Architecture**:
-  - Chunks store 768-dimensional `Float32Array` embeddings directly as 3,072-byte SQLite `BLOB` columns (using `gemini-embedding-001` with MRL `outputDimensionality: 768`).
+  - Chunks store 768-dimensional `Float32Array` embeddings directly as 3,072-byte SQLite `BLOB` columns (using `gemini-embedding-2` with MRL `outputDimensionality: 768`).
   - **Stage 1 (Lightweight Vector Scan)**: The query pipeline executes `SELECT id, embedding FROM chunks WHERE item_id IN (SELECT id FROM items WHERE status = 'ready')`. In-memory cosine similarity is computed across byte-aligned float buffers.
   - **Stage 2 (Context Hydration)**: Only the top-K chunks exceeding the similarity threshold (`>= 0.30`) are hydrated with full text and metadata: `SELECT id, item_id, content, title, source_url FROM chunks WHERE id IN (...)`.
   - **Memory Alignment**: Node.js buffer allocation from slab pools does not guarantee 4-byte alignment. Direct `new Float32Array(buf.buffer)` throws `RangeError: start offset must be a multiple of 4`. We always slice the underlying buffer before constructing typed float arrays, ensuring 100% memory alignment safety.
