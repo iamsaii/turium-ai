@@ -10,26 +10,25 @@ const SCHEMA_DDL = `
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS items (
-  id TEXT PRIMARY KEY,
-  type TEXT NOT NULL CHECK(type IN ('text', 'url')),
-  source TEXT NOT NULL,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL CHECK(type IN ('note', 'url')),
   title TEXT NOT NULL,
+  source_url TEXT,
   raw_content TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL CHECK(status IN ('processing', 'ready', 'failed')),
   error_message TEXT,
-  chunk_count INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  chunk_count INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_items_status ON items(status);
 CREATE INDEX IF NOT EXISTS idx_items_created_at ON items(created_at);
 
 CREATE TABLE IF NOT EXISTS chunks (
-  id TEXT PRIMARY KEY,
-  item_id TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
   chunk_index INTEGER NOT NULL,
-  text TEXT NOT NULL,
+  content TEXT NOT NULL,
   embedding BLOB NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -49,8 +48,7 @@ export function initDatabase(db: DatabaseSync): void {
   const result = db.prepare(`
     UPDATE items 
     SET status = 'failed', 
-        error_message = 'Interrupted: Server restarted during ingestion',
-        updated_at = datetime('now')
+        error_message = 'Interrupted: Server restarted during ingestion'
     WHERE status = 'processing';
   `).run();
 

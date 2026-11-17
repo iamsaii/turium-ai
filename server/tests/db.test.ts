@@ -33,37 +33,39 @@ describe('Database Initialization & Schema', () => {
   it('reconciles orphaned processing items on startup', () => {
     // Insert an item in 'processing' status
     db.prepare(`
-      INSERT INTO items (id, type, source, title, raw_content, status, chunk_count, created_at, updated_at)
-      VALUES ('item-orphan', 'text', 'My note', 'My note', 'Some content', 'processing', 0, datetime('now'), datetime('now'))
+      INSERT INTO items (type, title, source_url, raw_content, status, chunk_count)
+      VALUES ('note', 'My note', null, 'Some content', 'processing', 0)
     `).run();
 
     // Re-run initDatabase to simulate restart
     initDatabase(db);
 
-    const item = db.prepare("SELECT * FROM items WHERE id = 'item-orphan'").get() as any;
+    const item = db.prepare("SELECT * FROM items WHERE title = 'My note'").get() as any;
     expect(item.status).toBe('failed');
     expect(item.error_message).toBe('Interrupted: Server restarted during ingestion');
   });
 
   it('cascades chunk deletion when an item is deleted', () => {
-    db.prepare(`
-      INSERT INTO items (id, type, source, title, raw_content, status, chunk_count, created_at, updated_at)
-      VALUES ('item-parent', 'text', 'Parent', 'Parent', 'Text', 'ready', 1, datetime('now'), datetime('now'))
+    const itemResult = db.prepare(`
+      INSERT INTO items (type, title, source_url, raw_content, status, chunk_count)
+      VALUES ('note', 'Parent', null, 'Text', 'ready', 1)
     `).run();
 
+    const itemId = itemResult.lastInsertRowid;
     const dummyBlob = Buffer.alloc(10);
-    db.prepare(`
-      INSERT INTO chunks (id, item_id, chunk_index, text, embedding)
-      VALUES ('chunk-1', 'item-parent', 0, 'Chunk text', ?)
-    `).run(dummyBlob);
+    const chunkResult = db.prepare(`
+      INSERT INTO chunks (item_id, chunk_index, content, embedding)
+      VALUES (?, 0, 'Chunk text', ?)
+    `).run(itemId, dummyBlob);
 
-    const chunkBefore = db.prepare("SELECT * FROM chunks WHERE id = 'chunk-1'").get();
+    const chunkId = chunkResult.lastInsertRowid;
+    const chunkBefore = db.prepare('SELECT * FROM chunks WHERE id = ?').get(chunkId);
     expect(chunkBefore).toBeDefined();
 
     // Delete parent item
-    db.prepare("DELETE FROM items WHERE id = 'item-parent'").run();
+    db.prepare('DELETE FROM items WHERE id = ?').run(itemId);
 
-    const chunkAfter = db.prepare("SELECT * FROM chunks WHERE id = 'chunk-1'").get();
+    const chunkAfter = db.prepare('SELECT * FROM chunks WHERE id = ?').get(chunkId);
     expect(chunkAfter).toBeUndefined();
   });
 });
