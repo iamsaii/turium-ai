@@ -1,8 +1,8 @@
-export function serializeEmbedding(vec: number[]): Buffer {
+export function serializeEmbedding(vec: number[] | Float32Array): Buffer {
   if (vec.length !== 768) {
     throw new Error(`Invalid embedding dimension: expected 768, got ${vec.length}`);
   }
-  const floatArray = new Float32Array(vec);
+  const floatArray = vec instanceof Float32Array ? vec : new Float32Array(vec);
   return Buffer.from(floatArray.buffer, floatArray.byteOffset, floatArray.byteLength);
 }
 
@@ -14,7 +14,13 @@ export function deserializeEmbedding(buf: Buffer): Float32Array {
   return new Float32Array(alignedBuffer);
 }
 
-export function cosineSimilarity(a: Float32Array, b: Float32Array): number {
+export const serializeVector = serializeEmbedding;
+export const deserializeVector = deserializeEmbedding;
+
+export function cosineSimilarity(
+  a: Float32Array | number[],
+  b: Float32Array | number[]
+): number {
   if (a.length !== b.length) {
     throw new Error(`Vector dimension mismatch: ${a.length} !== ${b.length}`);
   }
