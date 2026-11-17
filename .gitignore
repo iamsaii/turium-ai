@@ -4,3 +4,4 @@ data.db*
 .env
 .superpowers/
 coverage/
+.DS_Store
