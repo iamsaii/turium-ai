@@ -1,13 +1,13 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { GEMINI_API_KEY, EMBEDDING_MODEL, CHAT_MODEL } from '../config.js';
 import { RateLimitError, ExternalServiceError } from '../lib/errors.js';
 import type { SourceSnippet } from '../types/index.js';
 
-let genAI: GoogleGenerativeAI | null = null;
+let genAI: GoogleGenAI | null = null;
 
-function getClient(): GoogleGenerativeAI {
+function getClient(): GoogleGenAI {
   if (!genAI) {
-    genAI = new GoogleGenerativeAI(GEMINI_API_KEY || 'dummy-key-for-test');
+    genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY || 'dummy-key-for-test' });
   }
   return genAI;
 }
@@ -58,7 +58,7 @@ async function withRetry<T>(
 }
 
 /**
- * Batch generates vector embeddings for an array of text chunks.
+ * Batch generates vector embeddings for an array of text chunks using GoogleGenAI.
  */
 export async function generateEmbeddings(
   texts: string[],
@@ -69,20 +69,18 @@ export async function generateEmbeddings(
   }
 
   const client = getClient();
-  const model = client.getGenerativeModel({ model: EMBEDDING_MODEL });
 
   return withRetry(async () => {
-    const result = await model.batchEmbedContents({
-      requests: texts.map((t) => ({
-        content: { parts: [{ text: t }], role: 'user' },
-      })),
+    const result = await client.models.embedContent({
+      model: EMBEDDING_MODEL,
+      contents: texts,
     });
 
     if (!result?.embeddings || !Array.isArray(result.embeddings)) {
       throw new ExternalServiceError('Invalid response received from Gemini embedding API');
     }
 
-    return result.embeddings.map((e) => e.values);
+    return result.embeddings.map((e) => e.values || []);
   }, baseDelayMs);
 }
 
@@ -95,7 +93,6 @@ export async function generateAnswer(
   baseDelayMs: number = 1000
 ): Promise<string> {
   const client = getClient();
-  const model = client.getGenerativeModel({ model: CHAT_MODEL });
 
   const formattedSources = contextSnippets
     .map(
@@ -120,7 +117,10 @@ User Question: ${question}
 `;
 
   return withRetry(async () => {
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    const result = await client.models.generateContent({
+      model: CHAT_MODEL,
+      contents: prompt,
+    });
+    return result.text || '';
   }, baseDelayMs);
 }
