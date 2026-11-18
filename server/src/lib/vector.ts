@@ -1,6 +1,6 @@
 export function serializeEmbedding(vec: number[] | Float32Array): Buffer {
-  if (vec.length !== 768) {
-    throw new Error(`Invalid embedding dimension: expected 768, got ${vec.length}`);
+  if (!vec || vec.length !== 768) {
+    throw new Error(`Invalid embedding dimension: expected 768, got ${vec ? vec.length : 'undefined'}`);
   }
   const floatArray = vec instanceof Float32Array ? vec : new Float32Array(vec);
   return Buffer.from(floatArray.buffer, floatArray.byteOffset, floatArray.byteLength);

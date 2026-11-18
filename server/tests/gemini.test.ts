@@ -30,19 +30,35 @@ describe('Gemini Service (@google/genai SDK)', () => {
     });
 
     it('calls embedContent and returns float arrays', async () => {
-      mockEmbedContent.mockResolvedValueOnce({
-        embeddings: [
-          { values: [0.1, 0.2, 0.3] },
-          { values: [0.4, 0.5, 0.6] },
-        ],
-      });
+      mockEmbedContent
+        .mockResolvedValueOnce({
+          embedding: { values: [0.1, 0.2, 0.3] },
+        })
+        .mockResolvedValueOnce({
+          embedding: { values: [0.4, 0.5, 0.6] },
+        });
 
       const vectors = await generateEmbeddings(['Hello', 'World']);
       expect(vectors).toEqual([
         [0.1, 0.2, 0.3],
         [0.4, 0.5, 0.6],
       ]);
-      expect(mockEmbedContent).toHaveBeenCalledTimes(1);
+      expect(mockEmbedContent).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries on 503 unavailable and rate limit (429)', async () => {
+      const error503 = new Error('This model is currently experiencing high demand');
+      (error503 as any).status = 503;
+
+      mockEmbedContent
+        .mockRejectedValueOnce(error503)
+        .mockResolvedValueOnce({
+          embedding: { values: [0.7, 0.8, 0.9] },
+        });
+
+      const vectors = await generateEmbeddings(['Retry test'], 10);
+      expect(vectors).toEqual([[0.7, 0.8, 0.9]]);
+      expect(mockEmbedContent).toHaveBeenCalledTimes(2);
     });
 
     it('retries on rate limit (429) and throws RateLimitError after maximum retries', async () => {
