@@ -37,19 +37,27 @@ async function withRetry<T>(
     try {
       return await fn();
     } catch (err: any) {
-      const isRateLimit =
+      const isTransient =
         err?.status === 429 ||
         err?.statusCode === 429 ||
-        (err?.message && (err.message.includes('429') || err.message.includes('RESOURCE_EXHAUSTED') || err.message.includes('quota')));
+        err?.status === 503 ||
+        err?.statusCode === 503 ||
+        (err?.message &&
+          (err.message.includes('429') ||
+            err.message.includes('503') ||
+            err.message.includes('RESOURCE_EXHAUSTED') ||
+            err.message.includes('quota') ||
+            err.message.includes('high demand') ||
+            err.message.includes('UNAVAILABLE')));
 
-      if (isRateLimit) {
+      if (isTransient) {
         if (attempt < maxRetries) {
           attempt++;
           const delay = baseDelayMs * Math.pow(2, attempt - 1);
           await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
-        throw new RateLimitError('Gemini API rate limit exceeded. Please try again later.');
+        throw new RateLimitError('Gemini API is temporarily unavailable or rate limited. Please try again later.');
       }
 
       throw new ExternalServiceError(err?.message || 'External Gemini service error');
@@ -71,19 +79,32 @@ export async function generateEmbeddings(
   const client = getClient();
 
   return withRetry(async () => {
-    const result = await client.models.embedContent({
-      model: EMBEDDING_MODEL,
-      contents: texts,
-      config: {
-        outputDimensionality: EMBEDDING_DIM,
-      },
-    });
+    // Multimodal models (like gemini-embedding-2) merge an array of strings into
+    // one multi-part content and return only a single embedding for the whole array.
+    // Mapping each chunk guarantees an embedding vector for every chunk.
+    const results = await Promise.all(
+      texts.map(async (text) => {
+        const result = await client.models.embedContent({
+          model: EMBEDDING_MODEL,
+          contents: text,
+          config: {
+            outputDimensionality: EMBEDDING_DIM,
+          },
+        });
 
-    if (!result?.embeddings || !Array.isArray(result.embeddings)) {
-      throw new ExternalServiceError('Invalid response received from Gemini embedding API');
-    }
+        const values =
+          (result as any)?.embedding?.values ||
+          result?.embeddings?.[0]?.values;
 
-    return result.embeddings.map((e) => e.values || []);
+        if (!values || !Array.isArray(values)) {
+          throw new ExternalServiceError('Invalid response received from Gemini embedding API');
+        }
+
+        return values;
+      })
+    );
+
+    return results;
   }, baseDelayMs);
 }
 

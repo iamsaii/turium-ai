@@ -1,11 +1,12 @@
 import React from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   totalItems: number;
   readyItems: number;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -13,6 +14,7 @@ export const Header: React.FC<HeaderProps> = ({
   readyItems,
   onRefresh,
   isRefreshing = false,
+  onLogout,
 }) => {
   return (
     <header className="border-b border-zinc-200 bg-white sticky top-0 z-10">
@@ -47,6 +49,17 @@ export const Header: React.FC<HeaderProps> = ({
               title="Refresh inbox"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+          )}
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="p-1.5 text-zinc-400 hover:text-zinc-700 rounded transition-colors"
+              title="Log out"
+              aria-label="Log out"
+            >
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
