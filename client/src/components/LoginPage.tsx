@@ -98,7 +98,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
           <button
             type="submit"
-            className="w-full inline-flex items-center justify-center px-3 py-2 rounded text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center px-3 py-2 rounded text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 outline-none"
           >
             Sign in
           </button>

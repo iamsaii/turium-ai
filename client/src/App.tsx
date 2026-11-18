@@ -61,10 +61,7 @@ export const App: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <LoginPage
-        onLoginSuccess={() => {
-          setIsAuthenticated(true);
-          refreshItems();
-        }}
+        onLoginSuccess={() => setIsAuthenticated(true)}
       />
     );
   }
@@ -81,6 +78,9 @@ export const App: React.FC = () => {
         onLogout={() => {
           clearStoredAuth();
           setIsAuthenticated(false);
+          setItems([]);
+          setQueryResult(null);
+          setError(null);
         }}
       />
 
