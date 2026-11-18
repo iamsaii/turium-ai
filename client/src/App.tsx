@@ -5,10 +5,13 @@ import { ItemList } from './components/ItemList.js';
 import { QueryPanel } from './components/QueryPanel.js';
 import { AnswerDisplay } from './components/AnswerDisplay.js';
 import { ErrorBanner } from './components/ErrorBanner.js';
+import { LoginPage } from './components/LoginPage.js';
+import { getStoredAuth, clearStoredAuth } from './lib/auth.js';
 import { fetchItems, deleteItem, submitQuery } from './api/client.js';
 import type { Item, QueryResponseDTO } from './types.js';
 
 export const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => getStoredAuth());
   const [items, setItems] = useState<Item[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isQuerying, setIsQuerying] = useState(false);
@@ -28,8 +31,10 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    refreshItems();
-  }, [refreshItems]);
+    if (isAuthenticated) {
+      refreshItems();
+    }
+  }, [isAuthenticated, refreshItems]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -53,6 +58,17 @@ export const App: React.FC = () => {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <LoginPage
+        onLoginSuccess={() => {
+          setIsAuthenticated(true);
+          refreshItems();
+        }}
+      />
+    );
+  }
+
   const readyItemsCount = items.filter((item) => item.status === 'ready').length;
 
   return (
@@ -62,6 +78,10 @@ export const App: React.FC = () => {
         readyItems={readyItemsCount}
         onRefresh={refreshItems}
         isRefreshing={isRefreshing}
+        onLogout={() => {
+          clearStoredAuth();
+          setIsAuthenticated(false);
+        }}
       />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
