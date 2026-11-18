@@ -1,10 +1,15 @@
 export const AUTH_STORAGE_KEY = 'ki_authenticated';
 
+export const AUTH_CREDENTIALS = {
+  username: 'turium',
+  password: 'afd09c24',
+};
+
 /**
- * Validates provided credentials against hardcoded admin credentials.
+ * Validates provided credentials against credentials.
  */
 export function validateCredentials(username: string, password: string): boolean {
-  return username === 'admin' && password === 'admin123';
+  return username === AUTH_CREDENTIALS.username && password === AUTH_CREDENTIALS.password;
 }
 
 /**

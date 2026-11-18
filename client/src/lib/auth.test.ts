@@ -40,17 +40,17 @@ describe('auth utilities', () => {
   });
 
   it('validates correct hardcoded credentials', () => {
-    expect(validateCredentials('admin', 'admin123')).toBe(true);
+    expect(validateCredentials('turium', 'afd09c24')).toBe(true);
   });
 
   it('rejects incorrect credentials', () => {
-    expect(validateCredentials('admin', 'wrongpass')).toBe(false);
-    expect(validateCredentials('wronguser', 'admin123')).toBe(false);
+    expect(validateCredentials('turium', 'wrongpass')).toBe(false);
+    expect(validateCredentials('wronguser', 'afd09c24')).toBe(false);
     expect(validateCredentials('', '')).toBe(false);
-    expect(validateCredentials('Admin', 'admin123')).toBe(false);
-    expect(validateCredentials('admin', 'Admin123')).toBe(false);
-    expect(validateCredentials(' admin ', 'admin123')).toBe(false);
-    expect(validateCredentials('admin', 'admin123 ')).toBe(false);
+    expect(validateCredentials('Turium', 'afd09c24')).toBe(false);
+    expect(validateCredentials('turium', 'Afd09c24')).toBe(false);
+    expect(validateCredentials(' turium ', 'afd09c24')).toBe(false);
+    expect(validateCredentials('turium', 'afd09c24 ')).toBe(false);
   });
 
   it('handles stored auth state in localStorage', () => {
