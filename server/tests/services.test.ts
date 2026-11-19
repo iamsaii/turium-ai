@@ -80,16 +80,23 @@ describe('Ingestion & Query Services', () => {
 
     it('handles concurrent deletion gracefully if parent item is deleted mid-flight', async () => {
       let itemIdToDelete: number = 0;
+      let finishExtraction!: () => void;
+      const extractionGate = new Promise<void>((resolve) => {
+        finishExtraction = resolve;
+      });
+
       vi.spyOn(extractionService, 'extractUrlContent').mockImplementationOnce(async () => {
-        // Simulate item deleted during extraction
-        if (itemIdToDelete) {
-          itemsRepo.deleteItemById(itemIdToDelete, db);
-        }
+        // Hold extraction until startIngestion has returned the item id.
+        await extractionGate;
+        itemsRepo.deleteItemById(itemIdToDelete, db);
         return {
           title: 'Deleted Web Page',
           bodyText: 'Text that should not be saved.',
         };
       });
+      vi.spyOn(geminiService, 'generateEmbeddings').mockResolvedValueOnce([
+        new Array(768).fill(0.1),
+      ]);
 
       const item = await startIngestion(
         {
@@ -99,10 +106,13 @@ describe('Ingestion & Query Services', () => {
         db
       );
       itemIdToDelete = item.id;
+      finishExtraction();
 
       // Should complete without unhandled rejection
       await expect(activeIngestionPromises.get(item.id)).resolves.not.toThrow();
 
+      expect(itemsRepo.getItemById(item.id, db)).toBeNull();
+      expect(geminiService.generateEmbeddings).not.toHaveBeenCalled();
       const chunks = chunksRepo.getReadyVectorIndex(db);
       expect(chunks.length).toBe(0);
     });
